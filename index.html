@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🏸 ลงชื่อตีแบด</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root {
+  --green: #00c853;
+  --green-d: #00a040;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --bg: #0d0d0d;
+  --card: #1a1a1a;
+  --card2: #222222;
+  --border: #2c2c2c;
+  --text: #f5f5f5;
+  --muted: #888;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* Hero */
+.hero {
+  padding: 24px 20px 20px;
+  background: linear-gradient(160deg, #0d2e0d 0%, #0d0d0d 60%);
+  border-bottom: 1px solid var(--border);
+}
+.event-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 99px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.status-open { background: rgba(0,200,83,0.15); color: var(--green); border: 1px solid rgba(0,200,83,0.3); }
+.status-full { background: rgba(255,59,48,0.15); color: var(--red); border: 1px solid rgba(255,59,48,0.3); }
+.status-closed { background: rgba(136,136,136,0.15); color: var(--muted); border: 1px solid rgba(136,136,136,0.3); }
+
+.event-title {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.event-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.meta-item { font-size: 13px; color: var(--muted); }
+
+/* Counter */
+.counter-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 16px;
+}
+.counter-current { font-size: 52px; font-weight: 900; line-height: 1; color: var(--green); transition: color 0.3s; }
+.counter-current.full { color: var(--red); }
+.counter-slash { font-size: 24px; color: var(--muted); margin-bottom: 6px; }
+.counter-max { font-size: 24px; color: var(--muted); margin-bottom: 6px; }
+
+.progress {
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--green);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+}
+.progress-bar.full { background: var(--red); }
+
+/* Action area */
+.action-wrap { padding: 16px; }
+
+.my-status-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  display: none;
+}
+.my-status-card.visible { display: flex; }
+.my-status-card .label { font-size: 12px; color: var(--muted); }
+.my-status-card .name { font-size: 15px; font-weight: 700; margin-top: 2px; }
+.my-status-num { font-size: 28px; font-weight: 900; color: var(--green); }
+
+/* Buttons */
+.btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.btn {
+  flex: 1;
+  padding: 15px 10px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:active { transform: scale(0.96); }
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { background: var(--green-d); }
+.btn-green:disabled { background: #2a2a2a; color: #555; cursor: not-allowed; transform: none; }
+.btn-outline { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: #555; }
+.btn-outline:disabled { color: #555; cursor: not-allowed; transform: none; }
+
+/* Add for others */
+.add-others-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.add-others-header {
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.add-others-header .label { font-size: 14px; font-weight: 700; }
+.add-others-header .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.chevron { font-size: 18px; color: var(--muted); transition: transform 0.2s; }
+.chevron.open { transform: rotate(180deg); }
+
+.add-others-body {
+  padding: 0 16px 16px;
+  display: none;
+  border-top: 1px solid var(--border);
+}
+.add-others-body.visible { display: block; }
+
+.name-input {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  margin-top: 12px;
+  transition: border-color 0.2s;
+}
+.name-input:focus { border-color: var(--green); }
+.name-input::placeholder { color: #3a3a3a; }
+
+.btn-add-name {
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 10px;
+  border: none;
+  background: var(--card2);
+  color: var(--green);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(0,200,83,0.3);
+  transition: all 0.15s;
+}
+.btn-add-name:active { transform: scale(0.98); }
+
+/* Player list */
+.list-wrap { padding: 0 16px; }
+.list-title { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: var(--card);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  animation: pop 0.25s ease;
+}
+@keyframes pop { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+.player-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted);
+  flex-shrink: 0;
+}
+.player-name { flex: 1; font-size: 14px; font-weight: 600; }
+.player-by { font-size: 11px; color: var(--muted); }
+.badge-guest {
+  font-size: 10px;
+  background: rgba(255,149,0,0.15);
+  color: var(--orange);
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,149,0,0.25);
+}
+
+.empty { text-align: center; color: var(--muted); padding: 30px 0; font-size: 14px; }
+.full-banner {
+  background: rgba(255,59,48,0.1);
+  border: 1px solid rgba(255,59,48,0.25);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  color: var(--red);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 14px;
+  display: none;
+}
+.full-banner.visible { display: block; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1a1a1a; color: white;
+  padding: 12px 22px; border-radius: 99px;
+  font-size: 14px; font-weight: 600;
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+  border: 1px solid #333;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); color: var(--green); }
+.toast.error { border-color: var(--red); color: var(--red); }
+
+.no-session { text-align: center; padding: 60px 20px; color: var(--muted); }
+.no-session .icon { font-size: 48px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div id="noSession" class="no-session" style="display:none">
+  <div class="icon">😴</div>
+  <div style="font-size:16px;font-weight:700;color:var(--text)">ยังไม่มีการจองที่เปิดอยู่</div>
+  <div style="font-size:13px;margin-top:6px">รอ Admin เปิดการจองในกลุ่มครับ</div>
+</div>
+
+<div id="mainContent">
+  <!-- Hero -->
+  <div class="hero">
+    <div class="event-status status-open" id="statusBadge">🟢 เปิดรับสมัคร</div>
+    <div class="event-title" id="eventTitle">กำลังโหลด...</div>
+    <div class="event-meta">
+      <div class="meta-item" id="eventDate" style="display:none"></div>
+      <div class="meta-item" id="eventLocation" style="display:none"></div>
+      <div class="meta-item" id="eventNote" style="display:none"></div>
+    </div>
+    <div class="counter-wrap">
+      <div class="counter-current" id="countNum">0</div>
+      <div class="counter-slash">/</div>
+      <div class="counter-max" id="maxNum">16</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:8px;margin-left:4px">คน</div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+  </div>
+
+  <!-- Action -->
+  <div class="action-wrap">
+    <div class="full-banner" id="fullBanner">⛔ เต็มแล้ว! ไม่สามารถลงชื่อเพิ่มได้</div>
+
+    <!-- My status -->
+    <div class="my-status-card" id="myStatusCard">
+      <div>
+        <div class="label">คุณลงชื่อแล้ว</div>
+        <div class="name" id="myName">—</div>
+      </div>
+      <div class="my-status-num" id="myPos">1</div>
+    </div>
+
+    <!-- Main buttons -->
+    <div class="btn-row">
+      <button class="btn btn-green" id="btnSignup" onclick="doSelfSignup()">✅ ลงชื่อ</button>
+      <button class="btn btn-outline" id="btnCancel" onclick="doSelfCancel()">❌ ยกเลิก</button>
+    </div>
+
+    <!-- Add others -->
+    <div class="add-others-wrap">
+      <div class="add-others-header" onclick="toggleAddOthers()">
+        <div>
+          <div class="label">➕ เพิ่มชื่อแทนคนอื่น</div>
+          <div class="sub">สำหรับคนนอกกลุ่มหรือลงชื่อให้เพื่อน</div>
+        </div>
+        <div class="chevron" id="chevron">▾</div>
+      </div>
+      <div class="add-others-body" id="addOthersBody">
+        <input class="name-input" id="otherName" type="text" placeholder="ใส่ชื่อที่ต้องการเพิ่ม" maxlength="30"/>
+        <button class="btn-add-name" onclick="doAddOther()">➕ เพิ่มชื่อนี้</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player list -->
+  <div class="list-wrap">
+    <div class="list-title">รายชื่อผู้เล่น</div>
+    <div id="playerList"><div class="empty">ยังไม่มีใครลงชื่อ</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+const LIFF_ID = 'YOUR_SIGNUP_LIFF_ID'; // ← ใส่ LIFF ID
+
+let myUserId = '';
+let myDisplayName = '';
+let currentSession = null;
+
+async function init() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      myUserId = profile.userId;
+      myDisplayName = profile.displayName;
+    }
+  } catch (e) {}
+  loadSession();
+  setInterval(loadSession, 8000);
+}
+
+async function loadSession() {
+  try {
+    const res = await fetch(`${API}/api/session`);
+    const data = await res.json();
+    if (!data.active) {
+      document.getElementById('noSession').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+      return;
+    }
+    document.getElementById('noSession').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    currentSession = data;
+    renderSession(data);
+  } catch(e) {}
+}
+
+function renderSession(s) {
+  const { title, date, location, note, players, maxPlayers, isOpen } = s;
+  const count = players.length;
+  const isFull = count >= maxPlayers;
+
+  // Status badge
+  const badge = document.getElementById('statusBadge');
+  if (!isOpen) { badge.textContent = '🔒 ปิดแล้ว'; badge.className = 'event-status status-closed'; }
+  else if (isFull) { badge.textContent = '⛔ เต็มแล้ว'; badge.className = 'event-status status-full'; }
+  else { badge.textContent = '🟢 เปิดรับสมัคร'; badge.className = 'event-status status-open'; }
+
+  document.getElementById('eventTitle').textContent = title;
+  setMeta('eventDate', date ? '📅 ' + date : '');
+  setMeta('eventLocation', location ? '📍 ' + location : '');
+  setMeta('eventNote', note ? '💬 ' + note : '');
+
+  document.getElementById('countNum').textContent = count;
+  document.getElementById('countNum').className = 'counter-current' + (isFull ? ' full' : '');
+  document.getElementById('maxNum').textContent = maxPlayers;
+
+  const pct = Math.round((count / maxPlayers) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  bar.className = 'progress-bar' + (isFull ? ' full' : '');
+
+  document.getElementById('fullBanner').className = 'full-banner' + (isFull ? ' visible' : '');
+
+  // My status
+  const me = myUserId ? players.find(p => p.userId === myUserId) : null;
+  const myCard = document.getElementById('myStatusCard');
+  if (me) {
+    myCard.className = 'my-status-card visible';
+    document.getElementById('myName').textContent = me.displayName;
+    document.getElementById('myPos').textContent = players.indexOf(me) + 1;
+  } else {
+    myCard.className = 'my-status-card';
+  }
+
+  // Buttons
+  const canSignup = isOpen && !isFull && !me;
+  const canCancel = !!me;
+  document.getElementById('btnSignup').disabled = !canSignup;
+  document.getElementById('btnCancel').disabled = !canCancel;
+
+  // Player list
+  renderList(players);
+}
+
+function renderList(players) {
+  const list = document.getElementById('playerList');
+  if (players.length === 0) {
+    list.innerHTML = '<div class="empty">ยังไม่มีใครลงชื่อ</div>';
+    return;
+  }
+  list.innerHTML = players.map((p, i) => `
+    <div class="player-card">
+      <div class="player-num">${i + 1}</div>
+      <div style="flex:1">
+        <div class="player-name">${esc(p.displayName)} ${p.userId === myUserId ? '<span style="color:var(--green);font-size:11px">← คุณ</span>' : ''}</div>
+        ${p.addedBy && p.addedBy !== p.displayName ? `<div class="player-by">เพิ่มโดย ${esc(p.addedBy)}</div>` : ''}
+      </div>
+      ${p.isGuest || (p.addedBy && p.addedBy !== p.displayName) ? '<span class="badge-guest">เพิ่มเอง</span>' : ''}
+    </div>
+  `).join('');
+}
+
+function setMeta(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.style.display = text ? 'block' : 'none';
+}
+
+async function doSelfSignup() {
+  if (!myDisplayName) { showToast('กรุณาเข้าสู่ระบบ Line ก่อนครับ', 'error'); return; }
+  await postSignup(myDisplayName, myUserId, myDisplayName);
+}
+
+async function doSelfCancel() {
+  if (!myUserId && !myDisplayName) { showToast('ไม่พบข้อมูลของคุณ', 'error'); return; }
+  try {
+    const res = await fetch(`${API}/api/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName: myDisplayName, userId: myUserId }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error, 'error'); return; }
+    showToast('🚫 ยกเลิกแล้วครับ', 'success');
+    loadSession();
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function doAddOther() {
+  const name = document.getElementById('otherName').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อครับ', 'error'); return; }
+  await postSignup(name, null, myDisplayName || 'ไม่ทราบ');
+  document.getElementById('otherName').value = '';
+}
+
+async function postSignup(displayName, userId, addedBy) {
+  try {
+    const res = await fetch(`${API}/api/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName, userId, addedBy }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error, 'error'); return; }
+    showToast(`✅ "${displayName}" ลงชื่อแล้ว! ลำดับ ${data.position}/${data.total}`, 'success');
+    loadSession();
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+function toggleAddOthers() {
+  const body = document.getElementById('addOthersBody');
+  const chev = document.getElementById('chevron');
+  const open = body.classList.toggle('visible');
+  chev.className = 'chevron' + (open ? ' open' : '');
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = `toast ${type}`, 3000);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>

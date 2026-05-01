@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>⚙️ เปิดการจอง — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root {
+  --green: #2ecc71;
+  --green-d: #27ae60;
+  --red: #e74c3c;
+  --bg: #f7f9f7;
+  --white: #ffffff;
+  --border: #e0e8e0;
+  --text: #1a2e1a;
+  --muted: #7a907a;
+  --accent: #1a5c1a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0 0 60px;
+}
+
+.top-bar {
+  background: var(--accent);
+  color: white;
+  padding: 18px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-bar .icon { font-size: 28px; }
+.top-bar h1 { font-size: 18px; font-weight: 900; }
+.top-bar p { font-size: 12px; opacity: 0.7; }
+
+.section {
+  background: var(--white);
+  margin: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.section-title {
+  padding: 14px 18px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.field {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.field:last-child { border-bottom: none; }
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.field input, .field textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: transparent;
+  resize: none;
+}
+.field input::placeholder, .field textarea::placeholder { color: #ccc; }
+
+/* Max players stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.stepper-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--white);
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 700;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.stepper-btn:active { transform: scale(0.9); background: var(--bg); }
+.stepper-num {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--accent);
+  min-width: 60px;
+  text-align: center;
+}
+.stepper-label { font-size: 13px; color: var(--muted); }
+
+/* Quick select */
+.quick-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Submit */
+.submit-wrap {
+  padding: 16px;
+}
+.btn-submit {
+  width: 100%;
+  padding: 17px;
+  border-radius: 14px;
+  border: none;
+  background: var(--green-d);
+  color: white;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 4px 16px rgba(39,174,96,0.3);
+}
+.btn-submit:active { transform: scale(0.98); }
+.btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1a2e1a; color: white;
+  padding: 12px 22px; border-radius: 99px;
+  font-size: 14px; font-weight: 600;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 100; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--red); }
+.toast.success { background: var(--green-d); }
+
+.preview-tag {
+  display: inline-block;
+  background: #e8f5e9;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-top: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="icon">⚙️</span>
+  <div>
+    <h1>ตั้งค่าการจอง</h1>
+    <p>Admin เท่านั้น</p>
+  </div>
+</div>
+
+<!-- ชื่อกิจกรรม -->
+<div class="section">
+  <div class="section-title">รายละเอียดกิจกรรม</div>
+  <div class="field">
+    <label>ชื่อกิจกรรม *</label>
+    <input id="title" type="text" placeholder="เช่น ตีแบดวันศุกร์" maxlength="50"/>
+  </div>
+  <div class="field">
+    <label>วันและเวลา</label>
+    <input id="date" type="text" placeholder="เช่น ศุกร์ที่ 2 ส.ค. 18:00–21:00"/>
+  </div>
+  <div class="field">
+    <label>สถานที่</label>
+    <input id="location" type="text" placeholder="เช่น สนาม ABC ลาดพร้าว"/>
+  </div>
+  <div class="field">
+    <label>หมายเหตุ (ถ้ามี)</label>
+    <textarea id="note" rows="2" placeholder="เช่น ค่าสนาม 50 บาท/คน"></textarea>
+  </div>
+</div>
+
+<!-- จำนวนคน -->
+<div class="section">
+  <div class="section-title">จำนวนผู้เล่นสูงสุด</div>
+  <div class="field">
+    <div class="stepper">
+      <button class="stepper-btn" onclick="changeMax(-1)">−</button>
+      <div>
+        <div class="stepper-num" id="maxNum">12</div>
+        <div class="stepper-label">คน</div>
+      </div>
+      <button class="stepper-btn" onclick="changeMax(1)">+</button>
+    </div>
+    <div class="quick-pills">
+      <div class="pill" onclick="setMax(4)">4</div>
+      <div class="pill" onclick="setMax(8)">8</div>
+      <div class="pill active" onclick="setMax(12)">12</div>
+      <div class="pill" onclick="setMax(16)">16</div>
+      <div class="pill" onclick="setMax(24)">24</div>
+      <div class="pill" onclick="setMax(32)">32</div>
+    </div>
+  </div>
+</div>
+
+<div class="submit-wrap">
+  <button class="btn-submit" id="submitBtn" onclick="openBooking()">
+    🏸 เปิดรับการจองในกลุ่ม
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let maxPlayers = 12;
+let groupId = '';
+
+// Parse groupId from URL
+const params = new URLSearchParams(window.location.search);
+groupId = params.get('groupId') || '';
+
+function changeMax(delta) {
+  maxPlayers = Math.max(2, Math.min(100, maxPlayers + delta));
+  document.getElementById('maxNum').textContent = maxPlayers;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+}
+
+function setMax(n) {
+  maxPlayers = n;
+  document.getElementById('maxNum').textContent = n;
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', parseInt(p.textContent) === n);
+  });
+}
+
+async function openBooking() {
+  const title = document.getElementById('title').value.trim();
+  const date = document.getElementById('date').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const note = document.getElementById('note').value.trim();
+
+  if (!title) { showToast('กรุณาใส่ชื่อกิจกรรมครับ', 'error'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังเปิด...';
+
+  let userId = '';
+  try {
+    await liff.init({ liffId: 'YOUR_ADMIN_LIFF_ID' }); // ← ใส่ LIFF ID
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      userId = profile.userId;
+    }
+  } catch (e) {}
+
+  try {
+    const res = await fetch(`${API}/api/session/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, date, location, note, maxPlayers, createdBy: userId, groupId }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error, 'error'); btn.disabled = false; btn.textContent = '🏸 เปิดรับการจองในกลุ่ม'; return; }
+
+    showToast('✅ เปิดการจองสำเร็จ!', 'success');
+    setTimeout(() => {
+      try { liff.closeWindow(); } catch(e) {}
+    }, 1500);
+  } catch (e) {
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '🏸 เปิดรับการจองในกลุ่ม';
+  }
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = `toast ${type}`, 3000);
+}
+</script>
+</body>
+</html>
