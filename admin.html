@@ -281,7 +281,7 @@ async function openBooking() {
 
   let userId = '';
   try {
-    await liff.init({ liffId: 'YOUR_ADMIN_LIFF_ID' }); // ← ใส่ LIFF ID
+    await liff.init({ liffId: '2009912276-wkBTjP2h' }); // ← ใส่ LIFF ID
     if (liff.isLoggedIn()) {
       const profile = await liff.getProfile();
       userId = profile.userId;
